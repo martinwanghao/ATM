@@ -1,15 +1,20 @@
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public class ATM {
-    private static int cash5;
-    private static int cash10;
-    private static int cash20;
-    private static int cash50;
+    private Date current;
     
-    Map<String, Customer> CustomerMap;
-    Map<String, Manager> ManagerMap;
+    private int cash5;
+    private int cash10;
+    private int cash20;
+    private int cash50;
+
+    private Map<String, Customer> customerMap;
+    private Map<String, Manager> managerMap;
+    private List<Transaction> transactionList;
 
     public static void main(String args[]) {
-        System.out.println("Hello Martin");
+        System.out.println("ATM starting ...");
     }
 }

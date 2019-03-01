@@ -1,16 +1,11 @@
 import java.util.Date;
+import java.util.List;
 
 public abstract class Account {
     private double balance;
-    Date date_of_creation;
-    Transaction[] transactions;
-    String account_num;
-    public Account(String num) {
-        account_num = num;
-        balance = 0;
-    }
-    public double getBalance(){
-        return balance;
-    }
-
+    private Date creationDate;
+    private Manager creator;
+    private Customer customer;
+    private List<Transaction> transactionList;
+    private String num;
 }
