@@ -8,4 +8,8 @@ public class Menu extends Option {
   private static void ShowMenu(Option[] arrOptions) {
 
   }
+
+  public Menu AddOption(String optionName, Runnable run) {
+    return this;
+  }
 }
