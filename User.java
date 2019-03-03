@@ -30,4 +30,8 @@ public abstract class User {
     public static boolean IsValidPassword(String password) {
         return patternPassword.matcher(password).matches();
     }
+
+	public void setPassword(String password) {
+        this.password = password;
+	}
 }
