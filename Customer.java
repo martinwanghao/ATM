@@ -1,6 +1,6 @@
 import java.util.List;
 
-public class Customer extends Person {
+public class Customer extends User {
   private List<Account> accountList;
   public Customer(String username, String password) {
     super(username, password);

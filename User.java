@@ -1,10 +1,10 @@
 import java.util.regex.Pattern;
 
-public abstract class Person {
+public abstract class User {
     private String username;
     private String password;
 
-    public Person(String username, String password) {
+    public User(String username, String password) {
         this.username = username;
         this.password = password;
     }
@@ -20,13 +20,14 @@ public abstract class Person {
         return this.password.equals(password);
     }
 
+    private static Pattern patternName = Pattern.compile("^\\w+$");
+    private static Pattern patternPassword = Pattern.compile("^\\w{6,}$");
+
     public static boolean IsValidName(String username) {
-        Pattern pattern = Pattern.compile("^\\w+$");
-        return pattern.matcher(username).matches();
+        return patternName.matcher(username).matches();
     }
 
     public static boolean IsValidPassword(String password) {
-        Pattern pattern = Pattern.compile("^\\w{6,}$");
-        return pattern.matcher(password).matches();
+        return patternPassword.matcher(password).matches();
     }
 }
