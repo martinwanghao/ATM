@@ -1,6 +1,9 @@
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 
-public abstract class User {
+public abstract class User implements Save {
     private String username;
     private String password;
 
@@ -9,9 +12,6 @@ public abstract class User {
         this.password = password;
     }
 
-    /**
-     * @return the username
-     */
     public String getUsername() {
         return username;
     }
@@ -31,7 +31,30 @@ public abstract class User {
         return patternPassword.matcher(password).matches();
     }
 
-	public void setPassword(String password) {
+    public void setPassword(String password) {
         this.password = password;
-	}
+    }
+
+    public static User Loader(Scanner in) {
+        try {
+            String usertype = in.nextLine();
+            String username = in.nextLine();
+            String password = in.nextLine();
+
+            if (usertype.equals("Manager")) {
+                return new Manager(username, password);
+            } else if (usertype.equals("Customer")) {
+                return new Customer(username, password);
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    @Override
+    public void Write(PrintWriter out) throws IOException {
+        out.write(this.getClass().getName() + "\n");
+        out.write(this.username + "\n");
+        out.write(this.password + "\n");
+    }
 }

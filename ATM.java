@@ -1,3 +1,6 @@
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -6,14 +9,16 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ATM {
-    private Date initTime;
-    private Date initClock;
-    private boolean powerOn = true;
+public class ATM implements Save {
+    private GregorianCalendar initTime;
+    private GregorianCalendar initClock;
+    private boolean powerON = true;
     private Screen screen = new Screen();
+    private Disk disk = new Disk();
 
     private int numOfCash5 = 100;
     private int numOfCash10 = 100;
@@ -55,7 +60,8 @@ public class ATM {
             });
             managerMenu.AddOption("Shutdown this ATM", () -> {
                 screen.ShowMsg("\nATM shutdown ...");
-                this.powerOn = false;
+                this.Shutdown();
+                this.powerON = false;
                 return false;
             });
             managerMenu.AddOption("Logout", null);
@@ -95,40 +101,60 @@ public class ATM {
         screen.ShowConfirmMsg("SUCCESS: Password changed");
     }
 
-    private Date getCurrentTime() {
-        return new Date((new Date()).getTime() - initClock.getTime() + initTime.getTime());
+    private GregorianCalendar getCurrentTime() {
+        GregorianCalendar now = new GregorianCalendar();
+        now.setTime(new Date((new Date()).getTime() - initClock.getTime().getTime() + initTime.getTime().getTime()));
+        return now;
     }
 
-    private void Run() {
-        screen.ShowMsg("\n\nFlora's ATM is powered ON");
-        screen.ShowMsg("ATM is starting ...");
-        this.Init();
-        while (powerOn)
-            this.Login();
-        screen.ShowMsg("\n\nFlora's ATM is powered OFF");
-    }
-
-    private String now() {
-        SimpleDateFormat ft = new SimpleDateFormat("E yyyy-MM-dd 'at' hh:mm:ss a zzz");
-        return ft.format(getCurrentTime());
-    }
-
-    private void Init() {
-        screen.ShowMsg("ATM is Initializing ...");
-        while (this.users.size() == 0) {
-            screen.ShowMsg("\nNOTICE: this is a new ATM, you should do some initial things first.");
+    private void Load() {
+        this.disk.LoadObject("./DISK/ATM.txt", this::Loader);
+        if (this.initTime == null) {
+            screen.ShowMsg("Loading ATM's time ... failed");
+            screen.ShowMsg("\nNOTICE: You should set ATM's time first");
             while (!InitSetClock())
                 ;
+        } else {
+            screen.ShowMsg("Loading ATM's time ... ok");
+        }
+
+        try {
+            ArrayList<User> users = this.disk.LoadList("./DISK/Users.txt", User::Loader);
+            users.forEach(o -> {
+                this.users.put(o.getUsername(), o);
+            });
+            screen.ShowMsg("Loading user accounts ... " + this.users.size() + " account(s) loaded");
+        } catch (IOException e) {
+            screen.ShowMsg("Loading user accounts ... failed(" + e.getMessage() + ")");
+        }
+        if (this.users.size() == 0) {
+            screen.ShowMsg("\nNOTICE: You should set at least one manager account");
             while (!InitSetManagerAccount())
                 ;
         }
     }
 
+    private void Run() {
+        screen.ShowMsg("\n\nFlora's ATM is powered ON");
+
+        this.Load();
+
+        while (powerON)
+            this.Login();
+
+        screen.ShowMsg("\n\nFlora's ATM is powered OFF\n");
+    }
+
+    private String now() {
+        SimpleDateFormat ft = new SimpleDateFormat("E yyyy-MM-dd 'at' hh:mm:ss a zzz");
+        return ft.format(getCurrentTime().getTime());
+    }
+
     private boolean InitSetClock() {
-        String strTime = screen.GetInput("\nPlease input currect time(default: 2019-3-3 15:11): ", "2019-3-3 15:11");
+        String strTime = screen.GetInput("Please input currect time(default: 2019-3-3 15:11): ", "2019-3-3 15:11");
+        initClock = new GregorianCalendar();
         if (strTime.isEmpty()) {
-            initTime = new Date();
-            initClock = initTime;
+            initTime = initClock;
         } else {
             Matcher m = patternTime.matcher(strTime);
             if (!m.matches()) {
@@ -145,9 +171,7 @@ public class ATM {
                 screen.ShowMsg("ERROR: time format is incorrect.");
                 return false;
             }
-            Calendar time = new GregorianCalendar(year, month - 1, day, hour, minute);
-            initTime = time.getTime();
-            initClock = new Date();
+            initTime = new GregorianCalendar(year, month - 1, day, hour, minute);
         }
 
         screen.ShowMsg("" + now());
@@ -155,7 +179,7 @@ public class ATM {
     }
 
     private boolean InitSetManagerAccount() {
-        String username = screen.GetInput("\nPlease set manager's username(default: flora): ", "flora");
+        String username = screen.GetInput("Please set manager's username(default: flora): ", "flora");
         if (!User.IsValidName(username)) {
             screen.ShowMsg("ERROR: invalid username");
             return false;
@@ -173,6 +197,24 @@ public class ATM {
         users.put(username, new Manager(username, password));
         screen.ShowMsg("SUCCESS: Manager " + username + " added");
         return true;
+    }
+
+    private void Shutdown() {
+        File f = new File("./DISK");
+        f.mkdir();
+        try {
+            disk.Save("./DISK/ATM.txt", this);
+            screen.ShowMsg("Saving ATM's time ... ok");
+        } catch (IOException e) {
+            screen.ShowMsg("Saving ATM's time ... failed(" + e.getMessage() + ")");
+        }
+
+        try {
+            disk.Save("./DISK/Users.txt", new ArrayList<Save>(this.users.values()));
+            screen.ShowMsg("Saving user acounts ... ok, " + this.users.size() + " account(s) saved");
+        } catch (IOException e) {
+            screen.ShowMsg("Saving user acounts ... failed(" + e.getMessage() + ")");
+        }
     }
 
     private void Login() {
@@ -199,4 +241,22 @@ public class ATM {
     public static void main(String args[]) {
         (new ATM()).Run();
     }
+
+    private ATM Loader(Scanner in) {
+        try {
+            GregorianCalendar now = new GregorianCalendar();
+            now.setTime(new Date(in.nextLong()));
+            now.add(Calendar.DATE, 1);
+            this.initClock = new GregorianCalendar();
+            this.initTime = now;
+        } catch (Exception e) {
+        }
+        return this;
+    }
+
+    @Override
+    public void Write(PrintWriter out) throws IOException {
+        out.write(String.valueOf(this.getCurrentTime().getTime().getTime()));
+    }
+
 }
