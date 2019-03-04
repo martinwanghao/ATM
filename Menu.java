@@ -56,7 +56,7 @@ public class Menu {
     while (true) {
       String s = "";
       for (int i = 0; i < this.title.length(); i++)
-        s += "=";
+        s += "═";
       screen.ShowMsg("\n" + this.title + "\n" + s);
       for (int i = 1; i <= options.size(); i++) {
         screen.ShowMsg(String.valueOf(i) + ". " + options.get(i - 1).title);

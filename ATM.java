@@ -32,9 +32,6 @@ public class ATM implements Save {
     private static Pattern patternTime = Pattern
             .compile("^(?<year>\\d{4})-(?<month>\\d{1,2})-(?<day>\\d{1,2})\\s+(?<hour>\\d{1,2}):(?<minute>\\d{1,2})$");
 
-    public ATM() {
-    }
-
     private Menu managerMenu;
     private Menu customerMenu;
 
@@ -135,14 +132,20 @@ public class ATM implements Save {
     }
 
     private void Run() {
-        screen.ShowMsg("\n\nFlora's ATM is powered ON");
+        screen.ShowMsg("\n\n");
+        screen.ShowMsg("╔═════════════════════════════════╗");
+        screen.ShowMsg("║                                 ║");
+        screen.ShowMsg("║        Flora's ATM v2.1         ║");
+        screen.ShowMsg("║                                 ║");
+        screen.ShowMsg("╚═════════════════════════════════╝");
+        screen.ShowMsg("\nATM powered ON");
 
         this.Load();
 
         while (powerON)
             this.Login();
 
-        screen.ShowMsg("\n\nFlora's ATM is powered OFF\n");
+        screen.ShowMsg("\n\nATM powered OFF\n");
     }
 
     private String now() {
@@ -218,7 +221,7 @@ public class ATM implements Save {
     }
 
     private void Login() {
-        screen.ShowMsg("\n\nWelcome to Flora's ATM!");
+        screen.ShowMsg("\n\nWelcome to Flora's ATM");
         screen.ShowMsg("" + now() + "\n");
         String userName = screen.GetInput("Username : ", "");
         if (userName.isEmpty())
