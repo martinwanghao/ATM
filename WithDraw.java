@@ -1,3 +1,3 @@
 public class WithDraw extends Transaction {
-  private Account account;
+  // private Account account;
 }

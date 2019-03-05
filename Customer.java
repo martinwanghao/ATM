@@ -1,7 +1,7 @@
-import java.util.List;
+// import java.util.List;
 
 public class Customer extends User {
-  private List<Account> accountList;
+  // private List<Account> accountList;
   public Customer(String username, String password) {
     super(username, password);
   }

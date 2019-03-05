@@ -1,5 +1,5 @@
-import java.util.Date;
+// import java.util.Date;
 public class Transaction {
-    private double amount;
-    private Date time;
+    // private double amount;
+    // private Date time;
 }

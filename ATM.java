@@ -7,101 +7,87 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ATM implements Save {
+public class ATM implements Saver {
     private GregorianCalendar initTime;
     private GregorianCalendar initClock;
-    private boolean powerON = true;
+    private boolean powerON;
     private Screen screen = new Screen();
     private Disk disk = new Disk();
-
-    private int numOfCash5 = 100;
-    private int numOfCash10 = 100;
-    private int numOfCash20 = 100;
-    private int numOfCash50 = 100;
-
-    private Map<String, User> users = new HashMap<String, User>();
-    private List<Transaction> transactionList = new ArrayList<Transaction>();
-
     private User currentUser = null;
+    private Map<String, User> users = new HashMap<String, User>();
+
+    // private int numOfCash5 = 100;
+    // private int numOfCash10 = 100;
+    // private int numOfCash20 = 100;
+    // private int numOfCash50 = 100;
+    // private List<Transaction> transactionList = new ArrayList<Transaction>();
+
     private static Pattern patternTime = Pattern
             .compile("^(?<year>\\d{4})-(?<month>\\d{1,2})-(?<day>\\d{1,2})\\s+(?<hour>\\d{1,2}):(?<minute>\\d{1,2})$");
 
-    private Menu managerMenu;
-    private Menu customerMenu;
+    private ManagerMenu managerMenu = new ManagerMenu(this);
+    private CustomerMenu customerMenu = new CustomerMenu(this);
 
-    private Menu getManagerMenu() {
-        if (managerMenu == null) {
-            managerMenu = new Menu("Manager Menu", this.screen);
-            managerMenu.AddOption("Create a customer account", () -> {
-                String username = screen.GetInput("\nPlease input customer's username: ");
-                if (!User.IsValidName(username)) {
-                    screen.ShowConfirmMsg("ERROR: invalid username");
-                    return true;
-                }
-
-                String password = String.valueOf(100000 + (int) (Math.random() * 100000));
-                users.put(username, new Customer(username, password));
-                screen.ShowConfirmMsg(
-                        "SUCCESS: Customer account '" + username + "' added, password is '" + password + "'");
-                return true;
-            });
-            managerMenu.AddOption("Change password", () -> {
-                ChangePassword();
-                return true;
-            });
-            managerMenu.AddOption("Shutdown this ATM", () -> {
-                screen.ShowMsg("\nATM shutdown ...");
-                this.Shutdown();
-                this.powerON = false;
-                return false;
-            });
-            managerMenu.AddOption("Logout", null);
-        }
-        return managerMenu;
+    public Screen getScreen() {
+        return this.screen;
     }
 
-    private Menu getCustomerMenu() {
-        if (customerMenu == null) {
-            customerMenu = new Menu("Customer Menu", this.screen);
-            customerMenu.AddOption("Change password", () -> {
-                ChangePassword();
-                return true;
-            });
-            customerMenu.AddOption("Logout", null);
-        }
-        return customerMenu;
+    public User getCurrentUser() {
+        return this.currentUser;
     }
 
-    private void ChangePassword() {
-        String passwordOld = screen.GetPassword("Old password: ", "");
-        if (!this.currentUser.CheckPassword(passwordOld)) {
-            screen.ShowConfirmMsg("ERROR: password is wrong");
-            return;
-        }
-        String password = screen.GetPassword("New password: ");
-        if (!User.IsValidPassword(password)) {
-            screen.ShowConfirmMsg("ERROR: invalid password");
-            return;
-        }
-        String password2 = screen.GetPassword("New password again: ", "");
-        if (!password.equals(password2)) {
-            screen.ShowConfirmMsg("ERROR: The two passwords you typed do not match");
-            return;
-        }
-        this.currentUser.setPassword(password);
-        screen.ShowConfirmMsg("SUCCESS: Password changed");
+    public void AddUser(User user) throws Exception {
+        if (users.containsKey(user.getUsername()))
+            throw new Exception("user already existed");
+        users.put(user.getUsername(), user);
+    }
+
+    public void Logout() {
+        this.currentUser = null;
+    }
+
+    public void Shutdown() {
+        this.Logout();
+        this.powerON = false;
     }
 
     private GregorianCalendar getCurrentTime() {
         GregorianCalendar now = new GregorianCalendar();
         now.setTime(new Date((new Date()).getTime() - initClock.getTime().getTime() + initTime.getTime().getTime()));
         return now;
+    }
+
+    private String getCurrentTimeString() {
+        SimpleDateFormat ft = new SimpleDateFormat("E yyyy-MM-dd 'at' hh:mm:ss a zzz");
+        return ft.format(getCurrentTime().getTime());
+    }
+
+    private void Run() {
+        screen.ShowMsg("\n\n");
+        screen.ShowMsg("╔═════════════════════════════════╗");
+        screen.ShowMsg("║ :                             : ║");
+        screen.ShowMsg("║                                 ║");
+        screen.ShowMsg("║           Welcome to            ║");
+        screen.ShowMsg("║         FLORA ATM v2.20         ║");
+        screen.ShowMsg("║                                 ║");
+        screen.ShowMsg("║ :                             : ║");
+        screen.ShowMsg("╚═════════════════════════════════╝");
+        screen.ShowMsg("");
+        powerON = true;
+        screen.ShowMsg("ATM powered ON");
+
+        this.Load();
+
+        while (powerON)
+            this.Login();
+
+        this.Save();
+        screen.ShowMsg("\n\nATM powered OFF\n");
     }
 
     private void Load() {
@@ -131,28 +117,6 @@ public class ATM implements Save {
         }
     }
 
-    private void Run() {
-        screen.ShowMsg("\n\n");
-        screen.ShowMsg("╔═════════════════════════════════╗");
-        screen.ShowMsg("║                                 ║");
-        screen.ShowMsg("║        Flora's ATM v2.1         ║");
-        screen.ShowMsg("║                                 ║");
-        screen.ShowMsg("╚═════════════════════════════════╝");
-        screen.ShowMsg("\nATM powered ON");
-
-        this.Load();
-
-        while (powerON)
-            this.Login();
-
-        screen.ShowMsg("\n\nATM powered OFF\n");
-    }
-
-    private String now() {
-        SimpleDateFormat ft = new SimpleDateFormat("E yyyy-MM-dd 'at' hh:mm:ss a zzz");
-        return ft.format(getCurrentTime().getTime());
-    }
-
     private boolean InitSetClock() {
         String strTime = screen.GetInput("Please input currect time(default: 2019-3-3 15:11): ", "2019-3-3 15:11");
         initClock = new GregorianCalendar();
@@ -177,7 +141,7 @@ public class ATM implements Save {
             initTime = new GregorianCalendar(year, month - 1, day, hour, minute);
         }
 
-        screen.ShowMsg("" + now());
+        screen.ShowMsg(getCurrentTimeString());
         return screen.GetConfirm("Is this time correct? (Y/n) : ", "y");
     }
 
@@ -202,7 +166,7 @@ public class ATM implements Save {
         return true;
     }
 
-    private void Shutdown() {
+    public void Save() {
         File f = new File("./DISK");
         f.mkdir();
         try {
@@ -213,7 +177,7 @@ public class ATM implements Save {
         }
 
         try {
-            disk.Save("./DISK/Users.txt", new ArrayList<Save>(this.users.values()));
+            disk.Save("./DISK/Users.txt", new ArrayList<Saver>(this.users.values()));
             screen.ShowMsg("Saving user acounts ... ok, " + this.users.size() + " account(s) saved");
         } catch (IOException e) {
             screen.ShowMsg("Saving user acounts ... failed(" + e.getMessage() + ")");
@@ -221,8 +185,8 @@ public class ATM implements Save {
     }
 
     private void Login() {
-        screen.ShowMsg("\n\nWelcome to Flora's ATM");
-        screen.ShowMsg("" + now() + "\n");
+        screen.ShowMsg("\n\nWelcome to FLORA ATM");
+        screen.ShowMsg(getCurrentTimeString() + "\n");
         String userName = screen.GetInput("Username : ", "");
         if (userName.isEmpty())
             return;
@@ -233,12 +197,14 @@ public class ATM implements Save {
             return;
         }
         this.currentUser = user;
+        Menu menu = null;
         if (user instanceof Manager) {
-            this.getManagerMenu().Show();
+            menu = managerMenu;
         } else if (user instanceof Customer) {
-            this.getCustomerMenu().Show();
+            menu = customerMenu;
         }
-        this.currentUser = null;
+        while (this.currentUser != null && menu != null)
+            menu.Show();
     }
 
     public static void main(String args[]) {

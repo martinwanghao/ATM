@@ -3,7 +3,7 @@ import java.io.PrintWriter;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-public abstract class User implements Save {
+public abstract class User implements Saver {
     private String username;
     private String password;
 

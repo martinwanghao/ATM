@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Disk {
-  void Save(String fileName, ArrayList<Save> list) throws IOException {
+  void Save(String fileName, ArrayList<Saver> list) throws IOException {
     PrintWriter out = new PrintWriter(fileName);
     for (int i = 0; i < list.size(); i++) {
       list.get(i).Write(out);
@@ -13,7 +13,7 @@ public class Disk {
     out.close();
   }
 
-  void Save(String fileName, Save obj) throws IOException {
+  void Save(String fileName, Saver obj) throws IOException {
     PrintWriter out = new PrintWriter(fileName);
     obj.Write(out);
     out.close();
