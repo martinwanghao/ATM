@@ -1,9 +1,12 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -20,6 +23,7 @@ public class ATM implements Saver {
     private Disk disk = new Disk();
     private User currentUser = null;
     private Map<String, User> users = new HashMap<String, User>();
+    private Map<String, Application> applications = new HashMap<String, Application>();
 
     // private int numOfCash5 = 100;
     // private int numOfCash10 = 100;
@@ -90,34 +94,55 @@ public class ATM implements Saver {
         screen.ShowMsg("\n\nATM powered OFF\n");
     }
 
+    private void ShowDot() {
+        this.screen.ShowPartMsg(".");
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+        }
+    }
+
+    private void LoadObject(Loader<?> loader, String name) {
+        screen.ShowPartMsg("Loading " + name + ".txt ");
+        try {
+            this.disk.LoadObject("./DISK/" + name + ".txt", loader, this::ShowDot);
+            screen.ShowMsg(" OK");
+        } catch (Exception e) {
+            screen.ShowMsg("FAILED, " + e.getMessage());
+        }
+    }
+
+    private <T> ArrayList<T> Load(Loader<T> loader, String name) {
+        screen.ShowPartMsg("Loading " + name + ".txt ");
+        try {
+            ArrayList<T> list = this.disk.LoadList("./DISK/" + name + ".txt", loader, this::ShowDot);
+            screen.ShowMsg(" OK, " + list.size() + " item(s) loaded");
+            return list;
+        } catch (Exception e) {
+            screen.ShowMsg(" FAILED, " + e.getMessage());
+        }
+        return new ArrayList<T>();
+    }
+
     private void Load() {
-        this.disk.LoadObject("./DISK/ATM.txt", this::Loader);
+        LoadObject(this::Loader, "ATM");
         if (this.initTime == null) {
-            screen.ShowMsg("Loading ATM's time ... failed");
-            screen.ShowMsg("\nNOTICE: You should set ATM's time first");
             while (!InitSetClock())
                 ;
-        } else {
-            screen.ShowMsg("Loading ATM's time ... ok");
         }
 
-        try {
-            ArrayList<User> users = this.disk.LoadList("./DISK/Users.txt", User::Loader);
-            users.forEach(o -> {
-                this.users.put(o.getUsername(), o);
-            });
-            screen.ShowMsg("Loading user accounts ... " + this.users.size() + " account(s) loaded");
-        } catch (IOException e) {
-            screen.ShowMsg("Loading user accounts ... failed(" + e.getMessage() + ")");
-        }
+        Load(User::Loader, User.class.getName()).forEach(o -> this.users.put(o.getUsername(), o));
         if (this.users.size() == 0) {
             screen.ShowMsg("\nNOTICE: You should set at least one manager account");
             while (!InitSetManagerAccount())
                 ;
         }
+
+        Load(Application::Loader, Application.class.getName()).forEach(o -> this.applications.put(o.getUsername(), o));
     }
 
     private boolean InitSetClock() {
+        screen.ShowMsg("NOTICE: You should set ATM's time first");
         String strTime = screen.GetInput("Please input currect time(default: 2019-3-3 15:11): ", "2019-3-3 15:11");
         initClock = new GregorianCalendar();
         if (strTime.isEmpty()) {
@@ -166,22 +191,34 @@ public class ATM implements Saver {
         return true;
     }
 
-    public void Save() {
+    private void Save(Saver saver) {
+        String name = saver.getClass().getName();
+        screen.ShowPartMsg("Saving " + name + ".txt ");
+        try {
+            disk.Save("./DISK/" + name + ".txt", this, this::ShowDot);
+            screen.ShowMsg(" OK");
+        } catch (IOException e) {
+            screen.ShowMsg(" FAILED, " + e.getMessage());
+        }
+    }
+
+    private <T extends Saver> void Save(Collection<T> list, String name) {
+        screen.ShowPartMsg("Saving " + name + ".txt ");
+        try {
+            disk.Save("./DISK/" + name + ".txt", new ArrayList<Saver>(list), this::ShowDot);
+            screen.ShowMsg(" OK, " + list.size() + " item(s) saved");
+        } catch (IOException e) {
+            screen.ShowMsg(" FAILED, " + e.getMessage());
+        }
+    }
+
+    private void Save() {
         File f = new File("./DISK");
         f.mkdir();
-        try {
-            disk.Save("./DISK/ATM.txt", this);
-            screen.ShowMsg("Saving ATM's time ... ok");
-        } catch (IOException e) {
-            screen.ShowMsg("Saving ATM's time ... failed(" + e.getMessage() + ")");
-        }
 
-        try {
-            disk.Save("./DISK/Users.txt", new ArrayList<Saver>(this.users.values()));
-            screen.ShowMsg("Saving user acounts ... ok, " + this.users.size() + " account(s) saved");
-        } catch (IOException e) {
-            screen.ShowMsg("Saving user acounts ... failed(" + e.getMessage() + ")");
-        }
+        Save(this);
+        Save(this.users.values(), User.class.getName());
+        Save(this.applications.values(), Application.class.getName());
     }
 
     private void Login() {
@@ -212,20 +249,24 @@ public class ATM implements Saver {
     }
 
     private ATM Loader(Scanner in) {
-        try {
-            GregorianCalendar now = new GregorianCalendar();
-            now.setTime(new Date(in.nextLong()));
-            now.add(Calendar.DATE, 1);
-            this.initClock = new GregorianCalendar();
-            this.initTime = now;
-        } catch (Exception e) {
-        }
+        GregorianCalendar now = new GregorianCalendar();
+        now.setTime(new Date(in.nextLong()));
+        now.add(Calendar.DATE, 1);
+        this.initClock = new GregorianCalendar();
+        this.initTime = now;
         return this;
     }
 
     @Override
     public void Write(PrintWriter out) throws IOException {
-        out.write(String.valueOf(this.getCurrentTime().getTime().getTime()));
+        out.write(String.valueOf(this.getCurrentTime().getTime().getTime()) + "\n");
+    }
+
+    public void ApplyForAccount(AccountType type) throws Exception {
+        String key = this.currentUser.getUsername() + "," + type.getIndex();
+        if (applications.containsKey(key))
+            throw new Exception("You had already send the same application");
+        applications.put(key, new Application(this.currentUser.getUsername(), type));
     }
 
 }

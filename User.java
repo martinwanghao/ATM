@@ -36,17 +36,14 @@ public abstract class User implements Saver {
     }
 
     public static User Loader(Scanner in) {
-        try {
-            String usertype = in.nextLine();
-            String username = in.nextLine();
-            String password = in.nextLine();
+        String usertype = in.nextLine();
+        String username = in.nextLine();
+        String password = in.nextLine();
 
-            if (usertype.equals("Manager")) {
-                return new Manager(username, password);
-            } else if (usertype.equals("Customer")) {
-                return new Customer(username, password);
-            }
-        } catch (Exception e) {
+        if (usertype.equals("Manager")) {
+            return new Manager(username, password);
+        } else if (usertype.equals("Customer")) {
+            return new Customer(username, password);
         }
         return null;
     }

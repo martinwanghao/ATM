@@ -1,11 +1,30 @@
+import java.util.regex.Pattern;
+
 public class Screen {
   private java.io.Console console = System.console();
+  private static Pattern patternSelected = Pattern.compile("^\\d+$");
 
   public String GetInput(String msg) {
     while (true) {
       String s = console.readLine(msg);
       if (!s.isEmpty())
         return s;
+    }
+  }
+
+  public int GetChoice(String msg, int min, int max) {
+    while (true) {
+      String s = GetInput(msg);
+      if (!patternSelected.matcher(s).matches()) {
+        ShowMsg("ERROR: invalid choice, you can only choose " + min + " to " + max);
+        continue;
+      }
+      int selected = Integer.parseInt(s);
+      if (selected < min || selected > max) {
+        ShowMsg("ERROR: invalid choice, you can only choose " + min + " to " + max);
+        continue;
+      }
+      return selected;
     }
   }
 
@@ -34,6 +53,18 @@ public class Screen {
 
   public void ShowMsg(String msg) {
     console.printf(msg + "\n");
+  }
+
+  public void ShowPartMsg(String msg) {
+    console.printf(msg);
+    // try {
+    //   for (int i = 0; i < 6; i++) {
+    //     Thread.sleep(200);
+    //     console.printf(".");
+    //   }
+    //   console.printf(" ");
+    // } catch (InterruptedException e) {
+    // }
   }
 
   public void ShowConfirmMsg(String msg) {

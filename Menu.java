@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class Menu {
   private class Option {
@@ -12,8 +11,6 @@ public class Menu {
       this.fun = fun;
     }
   }
-
-  private static Pattern patternSelected = Pattern.compile("^\\d+$");
 
   private String title;
   protected ATM atm;
@@ -33,24 +30,6 @@ public class Menu {
     return this;
   }
 
-  private int GetSelected() {
-    while (true) {
-      String input = screen.GetInput("\nPlease choose : ", "");
-      if (input.isEmpty())
-        continue;
-      if (!patternSelected.matcher(input).matches()) {
-        screen.ShowMsg("ERROR: invalid option");
-        continue;
-      }
-      int selected = Integer.parseInt(input);
-      if (selected < 1 || selected > options.size()) {
-        screen.ShowMsg("ERROR: invalid option");
-        continue;
-      }
-      return selected;
-    }
-  }
-
   public void Show() {
     String s = "";
     for (int i = 0; i < this.title.length(); i++)
@@ -59,7 +38,7 @@ public class Menu {
     for (int i = 1; i <= options.size(); i++) {
       screen.ShowMsg(String.valueOf(i) + ". " + options.get(i - 1).title);
     }
-    int selected = GetSelected();
+    int selected = screen.GetChoice("\nPlease enter your choice: ", 1, this.options.size());
     Option option = options.get(selected - 1);
     if (option != null && option.fun != null)
       option.fun.run();
