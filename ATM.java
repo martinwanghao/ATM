@@ -77,7 +77,7 @@ public class ATM implements Saver {
         screen.ShowMsg("║ :                             : ║");
         screen.ShowMsg("║                                 ║");
         screen.ShowMsg("║           Welcome to            ║");
-        screen.ShowMsg("║         FLORA ATM v2.20         ║");
+        screen.ShowMsg("║         FLORA ATM v2.21         ║");
         screen.ShowMsg("║                                 ║");
         screen.ShowMsg("║ :                             : ║");
         screen.ShowMsg("╚═════════════════════════════════╝");
