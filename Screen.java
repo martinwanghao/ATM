@@ -58,17 +58,18 @@ public class Screen {
   public void ShowPartMsg(String msg) {
     console.printf(msg);
     // try {
-    //   for (int i = 0; i < 6; i++) {
-    //     Thread.sleep(200);
-    //     console.printf(".");
-    //   }
-    //   console.printf(" ");
+    // for (int i = 0; i < 6; i++) {
+    // Thread.sleep(200);
+    // console.printf(".");
+    // }
+    // console.printf(" ");
     // } catch (InterruptedException e) {
     // }
   }
 
   public void ShowConfirmMsg(String msg) {
-    ShowMsg(msg);
+    if (!msg.isEmpty())
+      ShowMsg(msg);
     this.GetInput("Press RETURN to continue", "");
   }
 

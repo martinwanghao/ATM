@@ -67,9 +67,18 @@ public class ATM implements Saver {
         return now;
     }
 
-    private String getCurrentTimeString() {
+    public static String toShortDateString(Date d) {
+        SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        return ft.format(d);
+    }
+
+    public static String toDateString(Date d) {
         SimpleDateFormat ft = new SimpleDateFormat("E yyyy-MM-dd 'at' hh:mm:ss a zzz");
-        return ft.format(getCurrentTime().getTime());
+        return ft.format(d);
+    }
+
+    private String getCurrentTimeString() {
+        return toDateString(getCurrentTime().getTime());
     }
 
     private void Run() {
@@ -124,7 +133,7 @@ public class ATM implements Saver {
         }
         return new ArrayList<T>();
     }
-    
+
     private void Load() {
         LoadObject(this::Loader, "ATM");
         if (this.initTime == null) {
@@ -140,7 +149,10 @@ public class ATM implements Saver {
         }
 
         Load(Application::Loader, Application.class.getName()).forEach(o -> this.applications.put(o.getKey(), o));
-        Load(Account::Loader, Account.class.getName()).forEach(o -> this.accounts.put(o.getNum(), o));
+        Load(Account::Loader, Account.class.getName()).forEach(o -> {
+            this.accounts.put(o.getNum(), o);
+            ((Customer) this.users.get(o.getUsername())).AddAccount(o);;
+        });
     }
 
     private void Save() {
@@ -277,6 +289,8 @@ public class ATM implements Saver {
                 this.getCurrentTime().getTime());
         this.accounts.put(a.getNum(), a);
         this.applications.remove(application.getKey());
+        Customer customer = (Customer) this.users.get(application.getUsername());
+        customer.AddAccount(a);
     }
 
     private String getNewAccountNum() {

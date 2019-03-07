@@ -34,16 +34,20 @@ public enum AccountType {
         return null;
     }
 
+    public static AccountType valueOf(Account account) {
+        return valueOf(account.getClass().getName());
+    }
+
     public Account CreateAccount(String username, String num, Date time) {
         switch (value) {
         case 1:
-            return new CreditCard(username, num, time);
+            return new CreditCards(username, num, time);
         case 2:
             return new LineOfCredit(username, num, time);
         case 3:
             return new Chequing(username, num, time);
         case 4:
-            return new Saving(username, num, time);
+            return new Savings(username, num, time);
         }
         return null;
     }

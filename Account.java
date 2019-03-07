@@ -3,9 +3,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Scanner;
 
-import com.sun.accessibility.internal.resources.accessibility;
-
-public class Account implements Saver {
+public abstract class Account implements Saver {
   private String num;
   private String username;
   private float balance;
@@ -15,7 +13,19 @@ public class Account implements Saver {
     return num;
   }
 
-  public Account(String username, String num, Date time) {
+  public float getBalance() {
+    return balance;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public Date getCreationTime() {
+    return creationtime;
+  }
+
+  protected Account(String username, String num, Date time) {
     this.num = num;
     this.username = username;
     this.balance = 0;
@@ -23,18 +33,20 @@ public class Account implements Saver {
   }
 
   public static Account Loader(Scanner in) {
+    String type = in.nextLine();
     String username = in.nextLine();
     String num = in.nextLine();
     String balance = in.nextLine();
     String creationtime = in.nextLine();
 
-    Account a = new Account(username, num, new Date(Long.parseLong(creationtime)));
+    Account a = AccountType.valueOf(type).CreateAccount(username, num, new Date(Long.parseLong(creationtime)));
     a.balance = Float.parseFloat(balance);
     return a;
   }
 
   @Override
   public void Write(PrintWriter out) throws IOException {
+    out.write(this.getClass().getName() + "\n");
     out.write(this.username + "\n");
     out.write(this.num + "\n");
     out.write(this.balance + "\n");
