@@ -23,6 +23,7 @@ public class ATM implements Saver {
     private User currentUser = null;
     private Map<String, User> users = new HashMap<String, User>();
     private Map<String, Application> applications = new HashMap<String, Application>();
+    private Map<String, Account> accounts = new HashMap<String, Account>();
 
     // private int numOfCash5 = 100;
     // private int numOfCash10 = 100;
@@ -123,7 +124,7 @@ public class ATM implements Saver {
         }
         return new ArrayList<T>();
     }
-
+    
     private void Load() {
         LoadObject(this::Loader, "ATM");
         if (this.initTime == null) {
@@ -138,8 +139,18 @@ public class ATM implements Saver {
                 ;
         }
 
-        Load(Application::Loader, Application.class.getName())
-                .forEach(o -> this.applications.put(o.getUsername() + "," + o.getAccountType().getIndex(), o));
+        Load(Application::Loader, Application.class.getName()).forEach(o -> this.applications.put(o.getKey(), o));
+        Load(Account::Loader, Account.class.getName()).forEach(o -> this.accounts.put(o.getNum(), o));
+    }
+
+    private void Save() {
+        File f = new File("./DISK");
+        f.mkdir();
+
+        Save(this);
+        Save(this.users.values(), User.class.getName());
+        Save(this.applications.values(), Application.class.getName());
+        Save(this.accounts.values(), Account.class.getName());
     }
 
     private boolean InitSetClock() {
@@ -213,15 +224,6 @@ public class ATM implements Saver {
         }
     }
 
-    private void Save() {
-        File f = new File("./DISK");
-        f.mkdir();
-
-        Save(this);
-        Save(this.users.values(), User.class.getName());
-        Save(this.applications.values(), Application.class.getName());
-    }
-
     private void Login() {
         screen.ShowMsg("\n\nWelcome to FLORA ATM");
         screen.ShowMsg(getCurrentTimeString() + "\n");
@@ -264,10 +266,26 @@ public class ATM implements Saver {
     }
 
     public void ApplyForAccount(AccountType type) throws Exception {
-        String key = this.currentUser.getUsername() + "," + type.getIndex();
-        if (applications.containsKey(key))
+        Application a = new Application(this.currentUser.getUsername(), type);
+        if (applications.containsKey(a.getKey()))
             throw new Exception("You had already send the same application");
-        applications.put(key, new Application(this.currentUser.getUsername(), type));
+        applications.put(a.getKey(), a);
+    }
+
+    public void AddAccount(Application application) {
+        Account a = application.getAccountType().CreateAccount(application.getUsername(), getNewAccountNum(),
+                this.getCurrentTime().getTime());
+        this.accounts.put(a.getNum(), a);
+        this.applications.remove(application.getKey());
+    }
+
+    private String getNewAccountNum() {
+        while (true) {
+            String newnum = String.valueOf(100000 + (int) (Math.random() * 100000));
+            if (this.accounts.containsKey(newnum))
+                continue;
+            return newnum;
+        }
     }
 
 }

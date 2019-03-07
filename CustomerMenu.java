@@ -1,7 +1,15 @@
+import java.util.List;
+
 public class CustomerMenu extends Menu {
   public CustomerMenu(ATM atm) {
     super("Customer Menu", atm);
-    this.AddOption("Apply for a account", this::ApplyForAccount);
+  }
+
+  @Override
+  protected List<Option> getOptions() {
+    List<Option> options = super.getOptions();
+    options.add(0, new Option("Apply for a account", this::ApplyForAccount));
+    return options;
   }
 
   private void ApplyForAccount() {

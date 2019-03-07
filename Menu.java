@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class Menu {
-  private class Option {
+public abstract class Menu {
+  protected class Option {
     private String title;
     private Runnable fun;
 
@@ -15,22 +15,21 @@ public class Menu {
   private String title;
   protected ATM atm;
   protected Screen screen;
-  private List<Option> options = new ArrayList<Option>();
 
   public Menu(String title, ATM atm) {
     this.title = title;
     this.atm = atm;
     this.screen = atm.getScreen();
-    this.AddOption("Logout", () -> atm.Logout());
-    this.AddOption("Change Password", this::_ChangePassword);
+
   }
 
-  protected Menu AddOption(String title, Runnable fun) {
-    this.options.add(0, new Option(title, fun));
-    return this;
-  }
+  // protected Menu AddOption(String title, Runnable fun) {
+  // this.options.add(0, new Option(title, fun));
+  // return this;
+  // }
 
   public void Show() {
+    List<Option> options = getOptions();
     String s = "";
     for (int i = 0; i < this.title.length(); i++)
       s += "═";
@@ -38,7 +37,7 @@ public class Menu {
     for (int i = 1; i <= options.size(); i++) {
       screen.ShowMsg(String.valueOf(i) + ". " + options.get(i - 1).title);
     }
-    int selected = screen.GetChoice("\nPlease enter your choice: ", 1, this.options.size());
+    int selected = screen.GetChoice("\nPlease enter your choice: ", 1, options.size());
     Option option = options.get(selected - 1);
     if (option != null && option.fun != null)
       option.fun.run();
@@ -67,5 +66,12 @@ public class Menu {
     }
     user.setPassword(password);
     screen.ShowConfirmMsg("SUCCESS: Password changed");
+  }
+
+  protected List<Option> getOptions() {
+    List<Option> options = new ArrayList<Option>();
+    options.add(0, new Option("Logout", () -> atm.Logout()));
+    options.add(0, new Option("Change Password", this::_ChangePassword));
+    return options;
   }
 }

@@ -1,3 +1,5 @@
+import java.util.Date;
+
 public enum AccountType {
     CreditCards("Credit Cards Accounts", 1), LineOfCredit("Line of Credit", 2), Chequing("Chequing", 3),
     Savings("Savings", 4);
@@ -28,6 +30,20 @@ public enum AccountType {
             return Chequing;
         case 4:
             return Savings;
+        }
+        return null;
+    }
+
+    public Account CreateAccount(String username, String num, Date time) {
+        switch (value) {
+        case 1:
+            return new CreditCard(username, num, time);
+        case 2:
+            return new LineOfCredit(username, num, time);
+        case 3:
+            return new Chequing(username, num, time);
+        case 4:
+            return new Saving(username, num, time);
         }
         return null;
     }

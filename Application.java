@@ -15,6 +15,10 @@ public class Application implements Saver {
     return this.username;
   }
 
+  public String getKey() {
+    return this.username + "," + this.type.getIndex();
+  }
+
   public AccountType getAccountType() {
     return this.type;
   }
