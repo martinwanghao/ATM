@@ -1,8 +1,18 @@
+import java.util.List;
+
 public class ManagerMenu extends Menu {
   public ManagerMenu(ATM atm) {
     super("Manager Menu", atm);
     this.AddOption("Shutdown this ATM", this::_Shutdown);
+    List<Application> applications = atm.getApplications();
+    if (applications.size() > 0)
+      this.AddOption("Verify " + applications.size() + " open account application(s)", this::_OpenAccount);
+
     this.AddOption("Register Customer", this::_RegisterCustomer);
+  }
+
+  private void _OpenAccount() {
+    
   }
 
   private void _RegisterCustomer() {

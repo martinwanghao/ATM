@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -32,15 +33,16 @@ public class ATM implements Saver {
     private static Pattern patternTime = Pattern
             .compile("^(?<year>\\d{4})-(?<month>\\d{1,2})-(?<day>\\d{1,2})\\s+(?<hour>\\d{1,2}):(?<minute>\\d{1,2})$");
 
-    private ManagerMenu managerMenu = new ManagerMenu(this);
-    private CustomerMenu customerMenu = new CustomerMenu(this);
-
     public Screen getScreen() {
         return this.screen;
     }
 
     public User getCurrentUser() {
         return this.currentUser;
+    }
+
+    public List<Application> getApplications() {
+        return new ArrayList<Application>(this.applications.values());
     }
 
     public void AddUser(User user) throws Exception {
@@ -136,7 +138,8 @@ public class ATM implements Saver {
                 ;
         }
 
-        Load(Application::Loader, Application.class.getName()).forEach(o -> this.applications.put(o.getUsername(), o));
+        Load(Application::Loader, Application.class.getName())
+                .forEach(o -> this.applications.put(o.getUsername() + "," + o.getAccountType().getIndex(), o));
     }
 
     private boolean InitSetClock() {
@@ -234,11 +237,11 @@ public class ATM implements Saver {
         this.currentUser = user;
         Menu menu = null;
         if (user instanceof Manager) {
-            menu = managerMenu;
+            menu = new ManagerMenu(this);
         } else if (user instanceof Customer) {
-            menu = customerMenu;
+            menu = new CustomerMenu(this);
         }
-        while (this.currentUser != null && menu != null)
+        while (menu != null && this.currentUser != null)
             menu.Show();
     }
 
