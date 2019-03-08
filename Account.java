@@ -17,6 +17,10 @@ public abstract class Account implements Saver {
     return balance;
   }
 
+  public void addBalance(float amount) {
+    this.balance += amount;
+  }
+
   public String getUsername() {
     return username;
   }

@@ -12,7 +12,7 @@ public class Customer extends User {
     accounts.add(a);
   }
 
-  public List<Account> getAccouts() {
+  public List<Account> getAccounts() {
     return accounts;
   }
 }

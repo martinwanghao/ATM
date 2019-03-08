@@ -1,0 +1,9 @@
+cheque 100
+cheque 200
+cheque 500
+cheque 1000
+cash $5:10 $10:20 
+cash $5:100 $20:30 $50:40
+cash $20:20
+cash $10:10
+cash $50:5

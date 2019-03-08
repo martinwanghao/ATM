@@ -31,7 +31,7 @@ public class ATM implements Saver {
     // private int numOfCash50 = 100;
     // private List<Transaction> transactionList = new ArrayList<Transaction>();
 
-    private static Pattern patternTime = Pattern
+    private static final Pattern patternTime = Pattern
             .compile("^(?<year>\\d{4})-(?<month>\\d{1,2})-(?<day>\\d{1,2})\\s+(?<hour>\\d{1,2}):(?<minute>\\d{1,2})$");
 
     public Screen getScreen() {
@@ -87,7 +87,7 @@ public class ATM implements Saver {
         screen.ShowMsg("║ :                             : ║");
         screen.ShowMsg("║                                 ║");
         screen.ShowMsg("║           Welcome to            ║");
-        screen.ShowMsg("║         FLORA ATM v2.21         ║");
+        screen.ShowMsg("║         FLORA ATM v2.22         ║");
         screen.ShowMsg("║                                 ║");
         screen.ShowMsg("║ :                             : ║");
         screen.ShowMsg("╚═════════════════════════════════╝");
@@ -151,7 +151,8 @@ public class ATM implements Saver {
         Load(Application::Loader, Application.class.getName()).forEach(o -> this.applications.put(o.getKey(), o));
         Load(Account::Loader, Account.class.getName()).forEach(o -> {
             this.accounts.put(o.getNum(), o);
-            ((Customer) this.users.get(o.getUsername())).AddAccount(o);;
+            ((Customer) this.users.get(o.getUsername())).AddAccount(o);
+            ;
         });
     }
 
@@ -302,4 +303,8 @@ public class ATM implements Saver {
         }
     }
 
+    public void Deposit(String accountnum, float amount) {
+        Account a = this.accounts.get(accountnum);
+        a.addBalance(amount);
+    }
 }
